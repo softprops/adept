@@ -8,6 +8,7 @@ package object cmds {
     "repos"    -> Repos,
     "update"   -> Update,
     "diff"     -> Diff,
+    "info"     -> Info,
     "list"     -> List,
     "search"   -> Search,
     "lock"     -> Lock,
