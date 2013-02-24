@@ -35,6 +35,10 @@ case class Module(organization: String,
 object Module {
   import org.json4s._
   import org.json4s.native.JsonMethods._
+  import java.io.File
+  
+  def read(f: File): Either[String, Module] =
+    read(io.Source.fromFile(f).getLines().mkString("\n"))
 
   def read(in: String): Either[String, Module] = {
     val json = parse(in)
