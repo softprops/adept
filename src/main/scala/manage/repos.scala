@@ -11,7 +11,7 @@ trait Repos {
 
 object GitRepos extends Repos {
   import java.io.{ File, PrintWriter }
-  import org.eclipse.jgit.api.CreateBranchCommand
+  import org.eclipse.jgit.api.{ CreateBranchCommand, ResetCommand }
   import org.eclipse.jgit.lib.TextProgressMonitor
   import adept.{ Config, Files, Git }
 
@@ -40,6 +40,8 @@ object GitRepos extends Repos {
                     new TextProgressMonitor(new PrintWriter(System.out))
                   )
                  .call
+
+
             
       // set a branch for upstream changes
       g.branchCreate() 
@@ -48,7 +50,9 @@ object GitRepos extends Repos {
        .setStartPoint("origin/%s" format branch)
        .setForce(true)
        .call
-       
+
+      g.reset.setMode(ResetCommand.ResetType.HARD).setRef("HEAD").call
+
        Right("Cloned repo to %s" format target)
     }
   }
