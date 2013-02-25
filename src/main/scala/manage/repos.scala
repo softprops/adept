@@ -15,6 +15,8 @@ object GitRepos extends Repos {
   import org.eclipse.jgit.lib.TextProgressMonitor
   import adept.{ Config, Files, Git }
 
+  val LockFile = ".lock"
+
   def add(repo: String, maybeBranch: Option[String] = None) = {
     val repos = Config.reposDir
     if (!repos.exists) repos.mkdirs()
@@ -80,7 +82,7 @@ object GitRepos extends Repos {
     else {
       repos.listFiles(repo.map(Files.matching).getOrElse(Files.any)).foreach { f =>
         val repo = Git.repo(f)
-        val lock = new File(f, ".lock")
+        val lock = new File(f, LockFile)
         if (lock.exists) println(
           "Repo %s locked at %s" format(f.getName, io.Source.fromFile(lock).getLines().mkString("")))
         else {
@@ -106,7 +108,7 @@ object GitRepos extends Repos {
     val target = new File(repos, repo)
     if (!target.exists) Left("Repo %s does not exist" format repo)
     else {
-      val lockfile = new File(target, ".lock")
+      val lockfile = new File(target, LockFile)
       if (lockfile.exists) Left("Repo %s is already locked" format repo)
       else {
         lockfile.createNewFile
@@ -150,7 +152,7 @@ object GitRepos extends Repos {
     val target = new File(repos, repo)
     if (!target.exists) Left("repo %s does not exist" format repo)
     else {
-      val lockfile = new File(target, ".lock")
+      val lockfile = new File(target, LockFile)
       if (!lockfile.exists) Left("Repo %s is not locked" format repo)
       else {
         lockfile.delete
