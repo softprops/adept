@@ -3,7 +3,7 @@ package adept.manage
 trait Repos {
   def add(repo: String, branch: Option[String] = None): Either[String, String]
   def delete(repo: String): Either[String, String]
-  def update: Either[String, String]
+  def update(repo: Option[String] = None): Either[String, String]
   def list: Iterable[String]
   def lock(repo: String, sha: Option[String] = None): Either[String, String]
   def unlock(repo: String): Either[String, String]
@@ -73,12 +73,12 @@ object GitRepos extends Repos {
         repos.listFiles.map(_.getName)
     }
 
-  def update: Either[String, String] = {
+  def update(repo: Option[String] = None): Either[String, String] = {
     val repos = Config.reposDir
     if (!repos.exists || repos.listFiles.isEmpty) Left(
       "Nothing to update: no metadata repositories configured")
     else {
-      repos.listFiles.foreach { f =>          
+      repos.listFiles(repo.map(Files.matching).getOrElse(Files.any)).foreach { f =>
         val repo = Git.repo(f)
         val lock = new File(f, ".lock")
         if (lock.exists) println(
