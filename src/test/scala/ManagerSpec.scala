@@ -1,12 +1,16 @@
 package adept
 
 import org.scalatest.FunSpec
+import semverfi.Version
 
 class ManagerSpec extends FunSpec {
   val testRepo = "git://github.com/softprops/testmeta.git"
+  val testRepoName = "testmeta"
+  val testModuleName = "semverfi"
+
   describe("A Manager") {
     it ("should add repos") {
-      assert(Manager.repos.add(testRepo) === Right("Cloned repo to %s/testmeta" format Config.reposDir))
+      assert(Manager.repos.add(testRepo) === Right("Cloned repo to %s/%s" format(Config.reposDir, testRepoName)))
     }
 
     it ("should not same add repo twice") {
@@ -14,7 +18,7 @@ class ManagerSpec extends FunSpec {
     }
 
     it ("should list repos") {
-      assert(Manager.repos.list === List("testmeta"))
+      assert(Manager.repos.list === List(testRepoName))
     }
 
     it ("should be updatable") {
@@ -22,19 +26,32 @@ class ManagerSpec extends FunSpec {
     }
 
     it ("should list modules") {
-      assert(Manager.modules.list === List(("semverfi",Seq("0.1.0"))))
+      assert(Manager.modules.list === List((testModuleName, Seq("0.1.0"))))
     }
 
     it ("should list modules by organization") {
-      assert(Manager.modules.byOrganization("me.lessis").headOption.map(_._1) === Some("semverfi"))
+      assert(Manager.modules.byOrganization("me.lessis").headOption.map(_._1) === Some(testModuleName))
     }
 
     it ("should list modules by name") {
-      assert(Manager.modules.byName("semverfi").headOption.map(_._1) === Some("semverfi"))
+      assert(Manager.modules.byName(testModuleName).headOption.map(_._1) === Some(testModuleName))
+    }
+
+    it ("should add modules") {
+      val name = "bippy"
+      val mod = Module("com.me", name, Version("0.1.0"))
+      assert(Manager.modules.add(mod, testRepoName) === Right("ok"))
+      assert(Manager.modules.byName(name).headOption.map(_._1) == Some(name))
+    }
+
+    it ("should get info about a given module") {
+      Manager.modules.info(testModuleName).fold(fail(_), { mod =>
+        assert(mod.name === testModuleName)
+      })
     }
 
     it ("should delete repos") {
-      assert(Manager.repos.delete("testmeta") === Right("Deleted repo testmeta"))
+      assert(Manager.repos.delete(testRepoName) === Right("Deleted repo %s" format testRepoName))
     }
   }
 }
