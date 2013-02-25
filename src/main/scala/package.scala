@@ -12,5 +12,6 @@ package object cmds {
     "list"     -> List,
     "search"   -> Search,
     "lock"     -> Lock,
-    "unlock"   -> Unlock)
+    "unlock"   -> Unlock,
+    "add"      -> Add)
 }
