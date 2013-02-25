@@ -22,7 +22,11 @@ class ManagerSpec extends FunSpec {
     }
 
     it ("should be updatable") {
-      assert(Manager.repos.update === Right("repos updated"))
+      assert(Manager.repos.update() === Right("repos updated"))
+    }
+
+    it ("should update repo") {
+      assert(Manager.repos.update(Some(testRepoName)) === Right("repos updated"))
     }
 
     it ("should list modules") {
