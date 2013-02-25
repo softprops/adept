@@ -4,5 +4,5 @@ import adept.Manager
 
 object Update extends Cmd {
   def apply(args: Array[String]) =
-    Manager.repos.update
+    Manager.repos.update(args.headOption)
 }
