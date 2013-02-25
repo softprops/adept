@@ -25,6 +25,14 @@ class ManagerSpec extends FunSpec {
       assert(Manager.modules.list === List(("semverfi",Seq("0.1.0"))))
     }
 
+    it ("should list modules by organization") {
+      assert(Manager.modules.byOrganization("me.lessis").headOption.map(_._1) === Some("semverfi"))
+    }
+
+    it ("should list modules by name") {
+      assert(Manager.modules.byName("semverfi").headOption.map(_._1) === Some("semverfi"))
+    }
+
     it ("should delete repos") {
       assert(Manager.repos.delete("testmeta") === Right("Deleted repo testmeta"))
     }
