@@ -40,8 +40,6 @@ object GitRepos extends Repos {
                     new TextProgressMonitor(new PrintWriter(System.out))
                   )
                  .call
-
-
             
       // set a branch for upstream changes
       g.branchCreate() 
