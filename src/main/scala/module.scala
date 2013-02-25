@@ -35,10 +35,22 @@ case class Module(organization: String,
 object Module {
   import org.json4s._
   import org.json4s.native.JsonMethods._
+  import org.json4s.JsonDSL._
   import java.io.File
   
   def read(f: File): Either[String, Module] =
     read(io.Source.fromFile(f).getLines().mkString("\n"))
+
+  def write(mod: Module)(to: File) = {
+    def simple(m: Module) =
+      ("name" -> mod.name) ~
+      ("organization" -> mod.organization) ~
+      ("version" -> mod.version.toString)
+    val json = simple(mod) ~
+      ("dependencies" -> mod.dependencies.map(simple)) ~
+      ("artifacts" -> mod.artifacts.map(_.hash))
+    Files.write(to)(pretty(render(json)))
+  }
 
   def read(in: String): Either[String, Module] = {
     val json = parse(in)
