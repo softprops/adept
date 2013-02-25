@@ -11,9 +11,12 @@ trait Modules {
   def byOrgAndName(org: String, name: String): Listing
   def list: Listing
   def info(name: String, version: Option[String] = None): Either[String, Module]
+  def add(mod: Module, repo: String): Either[String, String]
 }
 
 object FsModules extends Modules {
+  val ModuleFile = "module.json"
+
   def byOrganization(org: String) =
     ls(Files.matching(org), Files.any)
 
@@ -26,11 +29,42 @@ object FsModules extends Modules {
   def list =
     ls(Files.any, Files.any)
 
+  def add(mod: Module, repo: String): Either[String, String] = {
+    val repos = Config.reposDir
+    if (!repos.exists) Left("No metadata repos exist")
+    else {
+      repos.listFiles(Files.matching(repo)) match {
+        case empt if (empt.isEmpty) =>
+          Left("Repo %s does not exist" format repo)
+        case Array(rep) =>
+          // make /com.mycompany/bippy/version/module.json
+          val metadataDir = new File(rep, "metadata")
+          if (!metadataDir.exists) metadataDir.mkdirs()
+          val orgDir = new File(metadataDir, mod.organization)
+          if (!orgDir.exists) orgDir.mkdirs()
+          val moduleDir = new File(orgDir, mod.name)
+          if (!moduleDir.exists) moduleDir.mkdirs()
+          val versionDir = new File(moduleDir, mod.version.toString)
+          val versionFile = new File(versionDir, ModuleFile)
+          if (versionDir.exists && versionFile.exists) Left(
+            "%s@%s already exists" format(mod.name, mod.version))
+          else {
+            if (!versionDir.exists) versionDir.mkdirs()
+            versionFile.createNewFile()
+            Module.write(mod)(versionFile)
+            Right("ok")
+          }
+      }
+    }
+  }
+
   def info(name: String, version: Option[String] = None): Either[String, Module] = {
     def extractModule(f: File): Either[String, Module] =
-      new File(f, "module.json") match {
-        case ne if (!ne.exists) => Left("module.json missing for %s" format f.getName)
-        case json => Module.read(json)
+      new File(f, ModuleFile) match {
+        case ne if (!ne.exists) =>
+          Left("%s missing for %s" format(ModuleFile, f.getName))
+        case json =>
+          Module.read(json)
       }
     val repos = Config.reposDir
     if (!repos.exists) Left("No metadata repos exist")
