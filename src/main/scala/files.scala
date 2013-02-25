@@ -10,6 +10,14 @@ object Files {
     w.flush
     w.close
   }
+  
+  def rm(f: File): Boolean = {    
+    if (!f.isDirectory) f.delete()
+    else {
+      f.listFiles.foreach(rm)
+      f.delete()
+    }
+  }
 
   case class Like(pat: String) extends FilenameFilter {
     def accept(dir: File, name: String) =

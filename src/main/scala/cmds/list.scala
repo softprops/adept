@@ -1,7 +1,6 @@
 package adept.cmds
 
-import adept.{ Config, Files }
-import java.io.{ File, FilenameFilter }
+import adept.Manager
 
 object List extends Cmd {
 
@@ -12,34 +11,21 @@ object List extends Cmd {
       case Array(name) =>
         name match {
           case OrgAndName(org, name) =>
-            ls(Files.matching(org), Files.matching(name))
+            Manager.modules.byOrgAndName(org, name).map(show)
           case name =>
-            if (name contains(".")) ls(Files.matching(name), Files.any)
-            else ls(Files.any, Files.matching(name))
+            if (name contains(".")) Manager.modules.byOrganization(name).map(show)
+            else Manager.modules.byName(name).map(show)
         }
+        Right("")
       case _ =>
-        ls(Files.any, Files.any)
+        Manager.modules.list.map(show)
+        Right("")
     }
 
-  private def ls(orgf: FilenameFilter, namef: FilenameFilter) = {
-    val repos = Config.reposDir
-    if (!repos.exists) Left("No metadata repos exist")
-    else {
-      repos.listFiles.map { repo =>
-        val metadata = new File(repo, "metadata")
-        if (!metadata.exists || !metadata.isDirectory) println("No metadata exists in repo %s" format repo.getName)
-        else {
-          metadata.listFiles(orgf).map { org =>
-            if (org.isDirectory) {
-              org.listFiles(namef).map { module =>
-                println("- %s" format module.getName)
-                module.listFiles.map(_.getName).foreach(version => println("  %s" format(version)))
-              }
-            }
-          }
-        }
-      }
-      Right("")
+  def show(m: (String, Seq[String])) =
+    m match {
+      case (name, versions) =>
+        println("- %s" format name)
+        versions.foreach(v => println("  %s" format v))
     }
-  }
 }
