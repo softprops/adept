@@ -10,7 +10,8 @@ trait Modules {
   def byName(name: String): Listing
   def byOrgAndName(org: String, name: String): Listing
   def list: Listing
-  def info(name: String, version: Option[String] = None): Either[String, Module]
+  def info(name: String, version: Option[String] = None, recurse: Boolean = false): Either[String, Module]
+  def graph(name: String, version: Option[String] = None): Either[String, Module]
   def add(mod: Module, repo: String): Either[String, String]
 }
 
@@ -58,13 +59,16 @@ object FsModules extends Modules {
     }
   }
 
-  def info(name: String, version: Option[String] = None): Either[String, Module] = {
+  def graph(name: String, version: Option[String] = None): Either[String, Module] =
+    info(name, version, recurse = true)
+
+  def info(name: String, version: Option[String] = None, recurse: Boolean = false): Either[String, Module] = {
     def extractModule(f: File): Either[String, Module] =
       new File(f, ModuleFile) match {
         case ne if (!ne.exists) =>
           Left("%s missing for %s" format(ModuleFile, f.getName))
         case json =>
-          Module.read(json)
+          Module.read(json, recurse)
       }
     val repos = Config.reposDir
     if (!repos.exists) Left("No metadata repos exist")

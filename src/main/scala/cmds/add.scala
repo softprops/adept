@@ -7,7 +7,7 @@ object Add extends Cmd {
     args match {
       case Array(json) =>
         Manager.repos.list.headOption.map { repo =>
-          Module.read(json).right.map { mod =>
+          Module.read(json, false).right.map { mod =>
             Manager.modules.add(mod, repo)
           }
           Right("added")

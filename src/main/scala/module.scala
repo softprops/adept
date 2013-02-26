@@ -28,8 +28,8 @@ case class Module(organization: String,
                   apiURL: Option[String] = None,
                   mainClass: Option[String] = None)
    extends ModuleLike {
-  def dependency(org: String, name: String, version: SemVersion) =
-    copy(dependencies = dependencies + Module(org, name, version))
+  def dependency(module: Module) =
+    copy(dependencies = dependencies + module)
 }
 
 object Module {
@@ -38,9 +38,6 @@ object Module {
   import org.json4s.JsonDSL._
   import java.io.File
   
-  def read(f: File): Either[String, Module] =
-    read(io.Source.fromFile(f).getLines().mkString("\n"))
-
   def write(mod: Module)(to: File) = {
     def simple(m: Module) =
       ("name" -> mod.name) ~
@@ -52,22 +49,32 @@ object Module {
     Files.write(to)(pretty(render(json)))
   }
 
-  def read(in: String): Either[String, Module] = {
+  def read(f: File, recurse: Boolean = false): Either[String, Module] =
+    read(io.Source.fromFile(f).getLines().mkString("\n"), recurse)
+
+  def read(in: String, recurse: Boolean): Either[String, Module] = {
     val json = parse(in)
     parseBasics(json).headOption.map {
       case (org, name, version) =>
-        val mod = (Module(org, name, Version(version)) /: parseDeps(json).flatten) {
-          case (builder, (deporg, depname, depversion)) =>
-            builder.dependency(deporg, depname, Version(depversion))
+        val result: Either[String, Module] = Right(Module(org, name, Version(version)))
+        val mod = (result /: parseDeps(json).flatten) {
+          case (module, (deporg, depname, depversion)) =>
+            module.fold(Left(_), { mod =>
+              // todo: graph by org/name/version
+              if (recurse) Manager.modules.graph(depname, Some(depversion)).right.map({ dep =>
+                mod.dependency(dep)
+              }) 
+              else Right(mod.dependency(Module(deporg, depname, Version(depversion))))
+            })
         }
         parseArtifacts(json) match {
           case Nil =>
             println("warning: module %s@%s does not declare any artifacts" format(name, version))
-            Right(mod)
+            mod
           case arts =>
-            Right(mod.copy(artifacts = arts.map(Artifact(_)).toSet))
+            mod.right.map(_.copy(artifacts = arts.map(Artifact(_)).toSet))
         }
-    }.getOrElse(Left("Missing required org, name, or version"))
+    }.getOrElse(Left("Missing required organization, name, or version"))
   }
 
   private def parseDeps(obj: JValue) =

@@ -30,7 +30,8 @@ class ManagerSpec extends FunSpec {
     }
 
     it ("should list modules") {
-      assert(Manager.modules.list === List((testModuleName, Seq("0.1.0"))))
+      val modules = Manager.modules.list
+      assert(modules.filter(_._1 == testModuleName) === List((testModuleName, Seq("0.1.0"))))
     }
 
     it ("should list modules by organization") {
@@ -51,6 +52,17 @@ class ManagerSpec extends FunSpec {
     it ("should get info about a given module") {
       Manager.modules.info(testModuleName).fold(fail(_), { mod =>
         assert(mod.name === testModuleName)
+      })
+    }
+
+    it ("should get graph of a given module") {
+      val dependentModuleName = "scalacollider"
+      Manager.modules.graph(dependentModuleName).fold(fail(_), { mod =>
+        assert(mod.name === dependentModuleName)
+        assert(mod.dependencies.size === 1)
+        mod.dependencies.headOption.map { dep =>
+          assert(dep.name === testModuleName)
+        }
       })
     }
 

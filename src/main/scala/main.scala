@@ -10,6 +10,6 @@ object Main {
       "name":"foo",                                                                                                                                          
       "organization":"my.comp",                                                                                                                              
       "version":"0.1.0"}]
-    }"""))
+    }""", false))
   }
 }
