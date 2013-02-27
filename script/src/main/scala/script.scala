@@ -22,3 +22,4 @@ class Script extends AppMain {
 }
 
 class Exit(val code: Int) extends xsbti.Exit
+

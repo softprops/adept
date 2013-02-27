@@ -1,7 +1,7 @@
 [app]
   version: 0.1.0-SNAPSHOT
   org: me.lessis
-  name: adept
+  name: adept-script
   class: adept.Script
 [scala]
   version: 2.9.2
