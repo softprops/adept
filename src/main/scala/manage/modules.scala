@@ -5,7 +5,7 @@ import adept.{ Config, Files, Module }
 import semverfi.Version
 
 trait Modules {
-  type Listing = Iterable[(String, Seq[String])]
+  type Listing = Iterable[(String, Seq[String], String)]
   def byOrganization(org: String): Listing
   def byName(name: String): Listing
   def byOrgAndName(org: String, name: String): Listing
@@ -104,9 +104,9 @@ object FsModules extends Modules {
 
   private def ls(orgf: FilenameFilter, namef: FilenameFilter): Listing = {
     val repos = Config.reposDir
-    if (!repos.exists) List.empty[(String, Seq[String])]
+    if (!repos.exists) List.empty[(String, Seq[String], String)]
     else {
-      (List.empty[(String, Seq[String])] /: repos.listFiles.toList) {
+      (List.empty[(String, Seq[String], String)] /: repos.listFiles.toList) {
         case (result, repo) =>
           val metadata = new File(repo, "metadata")
           if (!metadata.exists || !metadata.isDirectory) result
@@ -118,7 +118,7 @@ object FsModules extends Modules {
                                                   .sortBy(_._1)
                                                   .reverse
                                                   .map(_._2)
-                (module.getName, versions)
+                (module.getName, versions, repo.getName)
               }
             }
             result ::: modules.flatten

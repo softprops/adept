@@ -22,9 +22,9 @@ object List extends Cmd {
         Right("")
     }
 
-  def show(m: (String, Seq[String])) =
+  def show(m: (String, Seq[String], String)) =
     m match {
-      case (name, versions) =>
+      case (name, versions, repo) =>
         println("- %s" format name)
         versions.foreach(v => println("  %s" format v))
     }
