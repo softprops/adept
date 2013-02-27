@@ -43,7 +43,7 @@ class ManagerSpec extends FunSpec {
       assert(Manager.modules.byName(testModuleName).headOption.map(_._1) === Some(testModuleName))
     }
 
-    it ("should read arbirarty attrs from modules") {
+    it ("should read arbitrary attrs from modules") {
       val customAttr = "customAttr"
       Manager.modules.info(testModuleName).fold(fail(_), { mod =>
         mod.attr(customAttr).map {
@@ -53,7 +53,7 @@ class ManagerSpec extends FunSpec {
       })
     }
 
-    it ("should read arbirary config attrs") {
+    it ("should read arbitrary config attrs") {
       val customConf = "customConfig"
       val customAttr = "customAttr"
       Manager.modules.info(testModuleName).fold(fail(_), { mod =>
