@@ -30,8 +30,9 @@ class ManagerSpec extends FunSpec {
     }
 
     it ("should list modules") {
-      val modules = Manager.modules.list
-      assert(modules.filter(_._1 == testModuleName) === List((testModuleName, Seq("0.1.0"))))
+      val modules = Manager.modules.list.filter(_._1 == testModuleName)
+      assert(modules.size === 1)
+      modules.headOption.map(_._1 == testModuleName).getOrElse(fail("%s not resolved" format testModuleName))
     }
 
     it ("should list modules by organization") {
@@ -42,7 +43,30 @@ class ManagerSpec extends FunSpec {
       assert(Manager.modules.byName(testModuleName).headOption.map(_._1) === Some(testModuleName))
     }
 
-    it ("should add modules") {
+    it ("should read arbirarty attrs from modules") {
+      val customAttr = "customAttr"
+      Manager.modules.info(testModuleName).fold(fail(_), { mod =>
+        mod.attr(customAttr).map {
+          case IntAttribute(i) => assert(i === 42)
+          case a => fail("unexpected attr type %s" format a)
+        }.getOrElse(fail("failed to resolve attr %s" format customAttr))
+      })
+    }
+
+    it ("should read arbirary config attrs") {
+      val customConf = "customConfig"
+      val customAttr = "customAttr"
+      Manager.modules.info(testModuleName).fold(fail(_), { mod =>
+        mod.config(customConf).map {
+          case c => c.attr(customAttr).map {
+            case IntAttribute(i) => assert(i === 7)
+            case a => fail("unexpected attr type %s" format a)
+          }.getOrElse(fail("failed to resolve attr %s" format customAttr))
+        }.getOrElse(fail("failed to resolve configuration %s" format customConf))
+      })
+    }
+
+   it ("should add modules") {
       val name = "bippy"
       val mod = Module("com.me", name, Version("0.1.0"))
       assert(Manager.modules.add(mod, testRepoName) === Right("ok"))
