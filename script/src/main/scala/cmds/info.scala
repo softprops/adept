@@ -9,6 +9,8 @@ object Info extends Cmd {
         Manager.modules.info(name).right.map(show)
       case Array(name, version) =>
         Manager.modules.info(name, Some(version)).right.map(show)
+      case _ =>
+        Right("name required")
     }
 
   def show(m: Module) =
